@@ -7,7 +7,9 @@ trait IProjectControllerContract<TContractState> {
 
 #[starknet::contract]
 mod projectControllerContract {
-    use starknet::ContractAddress;
+    use starknet::{ContractAddress,get_caller_address};
+        use openzeppelin::access::accesscontrol::AccessControlComponent;
+
     #[derive(Copy, Drop, starknet::Store)]
     enum ProposalStatus {
             Proposed,
@@ -51,6 +53,47 @@ mod projectControllerContract {
         credential: ContractAddress,
         organization_controller: ContractAddress
     }
+
+
+
+    ////////////////////////////////
+    // Constructor - initialized on deployment
+    ////////////////////////////////
+    #[constructor]
+    fn constructor(ref self: ContractState,  credential: ContractAddress,
+        organization_controller: ContractAddress) {
+        
+    }
+ #[external(v0)]
+#[generate_trait]
+impl IProjectControllerContractImpl of ProjectControllerContractTrait{
+     
+        fn register_project(ref self: ContractState,  project_cid : felt252,reward: felt252,orgId: felt252,
+         deadline:felt252){
+             self.emit(
+                Register{ project_cid, reward, by:get_caller_address(), orgId,deadline}
+            );
+        }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //////////////////// Events go here //////////////////////////////////
        #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
