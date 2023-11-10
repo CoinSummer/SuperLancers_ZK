@@ -1,6 +1,6 @@
 #[starknet::interface]
 trait IProjectControllerContract<TContractState> {
-    fn create_project(ref self: TContractState,  project_cid : felt252,reward: felt252,orgId: felt252,
+    fn register_project(ref self: TContractState,  project_cid : felt252,reward: felt252,orgId: felt252,
          deadline:felt252);
      
 }
@@ -51,9 +51,21 @@ mod projectControllerContract {
         credential: ContractAddress,
         organization_controller: ContractAddress
     }
-    #[event]
+       #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
+        Register: Register,
+     }
+
+    /// Emitted when projects are registered.
+    #[derive(Drop, starknet::Event)]
+    struct Register {
+        #[key]
+        project_cid : felt252,
+        reward: felt252,
+        by: ContractAddress,
+        orgId: felt252,
+         deadline:felt252
     }
 
 }
