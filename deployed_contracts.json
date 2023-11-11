@@ -1,6 +1,5 @@
 {
     "organizationController": "0x00605ba0092e8c2da1dbfdd33d7f1c6fc1f60cbcadec90a2ce4fc21cffde015b",
     "credential" :"0x0267e1c16eb66b00cc753681cc4f3cd4277ca6e0b2f234d4cb5365a0bdf846e5",
-    "projectController":"0x0467fde23944b09226cf78514c362fcf5d21b49c5d7ccf48e847f47393fa1fd6",
-    "contracts": {"version":1,"contracts":[{"id":"4l1p8nbi7k6l6","package_name":"super_lancer","contract_name":"ProjectControllerContract","artifacts":{"sierra":"super_lancer_ProjectControllerContract.contract_class.json","casm":null}},{"id":"qeskfq37bu476","package_name":"super_lancer","contract_name":"CredentialContract","artifacts":{"sierra":"super_lancer_CredentialContract.contract_class.json","casm":null}},{"id":"sq1t429e83mgu","package_name":"super_lancer","contract_name":"OrganizationControllerContract","artifacts":{"sierra":"super_lancer_OrganizationControllerContract.contract_class.json","casm":null}}]}
-}
+    "projectController":"0x032258a97afb44386d02982d0d15af34e21542ce85668a3176dcfa7730bdaf2a",
+    "contracts": {"version":1,"contracts":[{"id":"4l1p8nbi7k6l6","package_name":"super_lancer","contract_name":"ProjectControllerContract","artifacts":{"sierra":"super_lancer_ProjectControllerContract.contract_class.json","casm":null}},{"id":"qeskfq37bu476","package_name":"super_lancer","contract_name":"CredentialContract","artifacts":{"sierra":"super_lancer_CredentialContract.contract_class.json","casm":null}},{"id":"sq1t429e83mgu","package_name":"super_lancer","contract_name":"OrganizationControllerContract","artifacts":{"sierra":"super_lancer_OrganizationControllerContract.contract_class.json","casm":null}}]}}
