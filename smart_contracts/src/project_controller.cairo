@@ -17,15 +17,16 @@ mod projectControllerContract {
 use option::OptionTrait;
 use starknet::{ContractAddress,get_caller_address};
 use openzeppelin::access::accesscontrol::AccessControlComponent;
+use serde::Serde;
 
-    #[derive(Copy, Drop, starknet::Store)]
+    #[derive(Copy, Drop, starknet::Store,Serde)]
     enum SubmissionStatus {
             Proposed,
             Accepted,
             Rejected,
             Awarded
         }
-    #[derive(Copy, Drop, starknet::Store)]
+    #[derive(Copy, Drop, starknet::Store,Serde)]
     enum ProjectStatus {
         Open,
         Closed,
@@ -34,7 +35,7 @@ use openzeppelin::access::accesscontrol::AccessControlComponent;
       ////////////////////////////////
     // Project structs go here
     ////////////////////////////////
-    #[derive(Copy, Drop, starknet::Store)]
+    #[derive(Copy, Drop, starknet::Store, Serde)]
     struct Project {
         id: felt252,
         cid: felt252,
@@ -43,7 +44,7 @@ use openzeppelin::access::accesscontrol::AccessControlComponent;
         deadline: felt252,
         winner_proposalId: felt252,
     }
-    #[derive(Copy, Drop, starknet::Store)]
+    #[derive(Copy, Drop, starknet::Store,Serde)]
     struct Submission {
         id: felt252,
         cid: felt252,
@@ -109,8 +110,14 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
      fn is_proiject_exist(self: @ContractState, project_id: felt252) -> bool{
         true
      }
-     fn is_submission_exist(self: @ContractState, project_id: felt252) -> bool{
+     fn is_submission_exist(self: @ContractState, submission_id: felt252) -> bool{
         false
+     }
+     fn get_project(self: @ContractState,  project_id: felt252) -> Project{
+        self.projects.read(project_id)       
+     }
+     fn get_submission(self: @ContractState,  submission_id: felt252) -> Submission{
+        self.submissions.read(submission_id)       
      }
     
 }
