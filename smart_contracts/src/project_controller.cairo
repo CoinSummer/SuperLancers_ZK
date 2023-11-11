@@ -103,6 +103,16 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
         worker: get_caller_address()}
             );
         }
+     fn get_project_status(self: @ContractState, project_id: felt252) -> felt252{
+            0
+        }
+     fn is_proiject_exist(self: @ContractState, project_id: felt252) -> bool{
+        true
+     }
+     fn is_submission_exist(self: @ContractState, project_id: felt252) -> bool{
+        false
+     }
+    
 }
 
 
