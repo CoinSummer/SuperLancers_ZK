@@ -1,24 +1,30 @@
+
 #[starknet::interface]
 trait IProjectControllerContract<TContractState> {
     fn register_project(ref self: TContractState,  project_cid : felt252,reward: felt252,orgId: felt252,
          deadline:felt252);
+    fn submit_work(ref self: TContractState,  project_id : felt252,work_cid: felt252);
+    fn accept_work(ref self: TContractState,  submission_id : felt252);
+     fn get_project_status(self: @TContractState, project_id: felt252) -> felt252;
+    //  fn get_project(self: @TContractState,  project_id: felt252) -> Project;
      
 }
 
 #[starknet::contract]
 mod projectControllerContract {
-    use starknet::{ContractAddress,get_caller_address};
-        use openzeppelin::access::accesscontrol::AccessControlComponent;
+use option::OptionTrait;
+use starknet::{ContractAddress,get_caller_address};
+use openzeppelin::access::accesscontrol::AccessControlComponent;
 
     #[derive(Copy, Drop, starknet::Store)]
-    enum ProposalStatus {
+    enum SubmissionStatus {
             Proposed,
             Accepted,
             Rejected,
             Awarded
         }
     #[derive(Copy, Drop, starknet::Store)]
-    enum QuestStatus {
+    enum ProjectStatus {
         Open,
         Closed,
         Awarded
@@ -27,7 +33,7 @@ mod projectControllerContract {
     // Project structs go here
     ////////////////////////////////
     #[derive(Copy, Drop, starknet::Store)]
-    struct Quest {
+    struct Project {
         id: felt252,
         cid: felt252,
         reward: felt252,
@@ -36,20 +42,20 @@ mod projectControllerContract {
         winner_proposalId: felt252,
     }
     #[derive(Copy, Drop, starknet::Store)]
-    struct Proposal {
+    struct Submission {
         id: felt252,
         cid: felt252,
-        proposer: felt252,
-        quest_id: felt252,
-        status: ProposalStatus,
+        submittor: ContractAddress,
+        project_id: felt252,
+        status: SubmissionStatus,
         work_cid: felt252,
     }
     #[storage]
     struct Storage {
-        quests :  LegacyMap::<felt252, Quest>,
-        proposals :  LegacyMap::<felt252, Proposal>,
-        proposal_ids :  LegacyMap::<(felt252,ContractAddress), felt252>,
-        total_quests: felt252,
+        projects :  LegacyMap::<felt252, Project>,
+        submissions :  LegacyMap::<felt252, Submission>,
+        submission_ids :  LegacyMap::<(felt252,ContractAddress), felt252>,
+        total_projects: felt252,
         credential: ContractAddress,
         organization_controller: ContractAddress
     }
@@ -71,7 +77,7 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
         fn register_project(ref self: ContractState,  project_cid : felt252,reward: felt252,orgId: felt252,
          deadline:felt252){
              self.emit(
-                Register{ project_cid, reward, by:get_caller_address(), orgId,deadline}
+            Register{ project_cid, reward, by:get_caller_address(), orgId,deadline}
             );
         }
 }
