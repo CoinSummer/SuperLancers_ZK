@@ -22,6 +22,11 @@ mod ProjectControllerContract {
     use option::OptionTrait;
     use starknet::{ContractAddress, get_caller_address};
     use serde::Serde;
+    use openzeppelin::token::erc20::ERC20ABIDispatcherTrait;
+    use openzeppelin::token::erc20::ERC20ABIDispatcher;
+    use starknet::get_contract_address;
+    use integer::u256_from_felt252;
+
     #[derive(Copy, Drop, starknet::Store, Serde)]
     enum SubmissionStatus {
         Proposed,
@@ -63,7 +68,8 @@ mod ProjectControllerContract {
         submission_ids: LegacyMap::<(u256, ContractAddress), u256>,
         total_projects: u256,
         credential: ContractAddress,
-        organization_controller: ContractAddress
+        organization_controller: ContractAddress,
+        eth_address: ContractAddress,
     }
 
 
@@ -74,10 +80,12 @@ mod ProjectControllerContract {
     fn constructor(
         ref self: ContractState,
         credential: ContractAddress,
+        eth_address: ContractAddress,
         organization_controller: ContractAddress
     ) {
         self.credential.write(credential);
         self.organization_controller.write(organization_controller);
+        self.eth_address.write(eth_address);
     }
     #[external(v0)]
     #[generate_trait]
@@ -96,9 +104,14 @@ mod ProjectControllerContract {
             // if (organizationController.adminOf(orgId) != msg.sender)
             //     revert Unauthorized();
             // if (deadline <= block.timestamp) revert DeadlineAlreadyPassed();
-            // if (msg.value != reward) revert InvalidValue();
-
+ 
             // // create project 
+            let allowance = ERC20ABIDispatcher { contract_address: self.eth_address.read() }
+                .allowance(get_caller_address(), get_contract_address());
+            assert(allowance >= u256_from_felt252(reward), 'approve at least 0.001 ETH!');
+
+            ERC20ABIDispatcher { contract_address: self.eth_address.read() }.transfer_from(get_caller_address(), get_contract_address(), u256_from_felt252(reward));
+
             let total = self.total_projects.read();
             let project = Project {
                 id: total,
@@ -155,7 +168,11 @@ mod ProjectControllerContract {
             submission.status = SubmissionStatus::Accepted;
             self.projects.write(submission.project_id, project);
             self.submissions.write(submission_id, submission);
+            let sumbmission= self.submissions.read(submission_id);
+            let winner = sumbmission.submittor;
             // TODO: refund winner with reward
+             ERC20ABIDispatcher { contract_address: self.eth_address.read() }.transfer_from( get_contract_address(),winner, u256_from_felt252(project.reward));
+
             // ToDo: mint NFT to winner
             self.emit(WorkAccepted { project_cid: 4, worker: get_caller_address() });
         }
