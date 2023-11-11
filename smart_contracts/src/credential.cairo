@@ -10,7 +10,7 @@ mod CredentialContract {
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     component!(path: ERC721Component, storage: erc721, event: ERC721Event);
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
-
+    const MINTER_ROLE: felt252 = 'MINTOR_ROLE';
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
@@ -46,6 +46,7 @@ mod CredentialContract {
         src5: SRC5Component::Storage,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
+        counter : u256
     }
 
 
@@ -55,14 +56,27 @@ mod CredentialContract {
     #[constructor]
     fn constructor(ref self: ContractState,) {
         self.accesscontrol.initializer();
+        self.accesscontrol._grant_role(MINTER_ROLE, get_caller_address());
         self.accesscontrol._grant_role(DEFAULT_ADMIN_ROLE, get_caller_address());
         self.erc721.initializer('Credential Soulbound Token', 'CST');
     }
     #[external(v0)]
     #[generate_trait]
     impl IProjectControllerContractImpl of ProjectControllerContractTrait {// mint function 
+  
+    fn mint (
+        ref self: ContractState,
+        to: ContractAddress,
+       
+    ) {
+        self.accesscontrol.assert_only_role(MINTER_ROLE);
+        let mut _counter = self.counter.read();
+        _counter += 1;
+        self.counter.write(_counter);
+        
+       self.erc721._mint(to, _counter);
     }
-
+    }
 
     //////////////////// Events go here //////////////////////////////////
     #[event]
