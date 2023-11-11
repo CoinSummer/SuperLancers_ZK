@@ -1,4 +1,3 @@
-
 #[starknet::contract]
 mod OrganizationControllerContract {
     use option::OptionTrait;
