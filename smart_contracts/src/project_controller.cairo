@@ -115,7 +115,8 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
           /// TODO: add more checks 
           assert(self.is_proiject_exist(project_id), 'project does not exist'');
             // assert(self.get_project_status(project_id) == ProjectStatus::Open, 'project is not open');
-         
+                     assert(project.deadline > block.timestamp, 'deadline has passed')
+
             let submission = Submission{
                 id: self.submission_ids.read((project_id,get_caller_address())),
                 cid: work_cid,
@@ -137,6 +138,20 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
 
 
         fn accept_work(ref self: ContractState,  submission_id : u256){
+            /// TODO:: Add more logic
+            assert(self.is_submission_exist(submission_id), 'submission does not exist');
+            let mut submission = self.submissions.read(submission_id);
+            let mut project = self.projects.read(submission.project_id);
+            assert(project.status == ProjectStatus::Open, 'project is not open');
+            assert(project.winner_proposalId == 0, 'project already has a winner');
+            // assert(project.orgId == get_caller_address(), 'caller is not the organization');
+            project.status = ProjectStatus::Awarded;
+            project.winner_proposalId = submission_id;
+            submission.status = SubmissionStatus::Accepted;
+            self.projects.write(submission.project_id, project);
+            self.submissions.write(submission_id, submission);
+            // TODO: refund winner with reward
+            // ToDo: mint NFT to winner
             self.emit(
             WorkAccepted{ project_cid : 4,
             worker: get_caller_address()}
