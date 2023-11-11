@@ -6,6 +6,8 @@ trait IProjectControllerContract<TContractState> {
     fn submit_work(ref self: TContractState,  project_id : felt252,work_cid: felt252);
     fn accept_work(ref self: TContractState,  submission_id : felt252);
      fn get_project_status(self: @TContractState, project_id: felt252) -> felt252;
+     fn is_proiject_exist(self: @TContractState, project_id: felt252) -> bool;
+     fn is_submission_exist(self: @TContractState, project_id: felt252) -> bool;
     //  fn get_project(self: @TContractState,  project_id: felt252) -> Project;
      
 }
@@ -68,6 +70,9 @@ use openzeppelin::access::accesscontrol::AccessControlComponent;
     #[constructor]
     fn constructor(ref self: ContractState,  credential: ContractAddress,
         organization_controller: ContractAddress) {
+
+            self.credential.write (credential);
+            self.organization_controller.write (organization_controller);
         
     }
  #[external(v0)]
@@ -78,6 +83,24 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
          deadline:felt252){
              self.emit(
             Register{ project_cid, reward, by:get_caller_address(), orgId,deadline}
+            );
+        }
+
+
+        fn submit_work(ref self: ContractState,  project_id : felt252,work_cid: felt252){
+             self.emit(
+            WorkSubmitted{  project_cid : 2,
+        work_id: 5,
+        worker: get_caller_address(),
+        work_cid}
+            );
+        }
+
+
+        fn accept_work(ref self: ContractState,  submission_id : felt252){
+             self.emit(
+            WorkAccepted{ project_cid : 4,
+        worker: get_caller_address()}
             );
         }
 }
@@ -104,6 +127,8 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
     #[derive(Drop, starknet::Event)]
     enum Event {
         Register: Register,
+        WorkSubmitted: WorkSubmitted,
+        WorkAccepted: WorkAccepted,
      }
 
     /// Emitted when projects are registered.
@@ -115,6 +140,20 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
         by: ContractAddress,
         orgId: felt252,
          deadline:felt252
-    }
+    } 
+    #[derive(Drop, starknet::Event)]
+    struct WorkSubmitted {
+        #[key]
+        project_cid : felt252,
+        work_id: felt252,
+        worker: ContractAddress,
+        work_cid: felt252,
+     }
+    #[derive(Drop, starknet::Event)]
+    struct WorkAccepted {
+        #[key]
+        project_cid : felt252,
+        worker: ContractAddress,
+     }
 
 }
