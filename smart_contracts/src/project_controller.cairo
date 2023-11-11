@@ -23,8 +23,7 @@ use serde::Serde;
     enum SubmissionStatus {
             Proposed,
             Accepted,
-            Rejected,
-            Awarded
+            Rejected
         }
     #[derive(Copy, Drop, starknet::Store,Serde)]
     enum ProjectStatus {
@@ -42,6 +41,7 @@ use serde::Serde;
         reward: felt252,
         orgId: felt252,
         deadline: felt252,
+        status: ProjectStatus,
         winner_proposalId: felt252,
     }
     #[derive(Copy, Drop, starknet::Store,Serde)]
@@ -104,14 +104,19 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
         worker: get_caller_address()}
             );
         }
-     fn get_project_status(self: @ContractState, project_id: felt252) -> felt252{
-            0
+     fn get_project_status(self: @ContractState, project_id: felt252) -> ProjectStatus{
+        let project = self.projects.read(project_id);
+        project.status
+        
         }
      fn is_proiject_exist(self: @ContractState, project_id: felt252) -> bool{
-        true
+        let project = self.projects.read(project_id);
+        project.id != 0
      }
      fn is_submission_exist(self: @ContractState, submission_id: felt252) -> bool{
-        false
+        let submission = self.submissions.read(submission_id);
+        submission.id != 0
+
      }
      fn get_project(self: @ContractState,  project_id: felt252) -> Project{
         self.projects.read(project_id)       
