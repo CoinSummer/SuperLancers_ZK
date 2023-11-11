@@ -17,9 +17,32 @@ trait IProjectControllerContract<TContractState> {
 mod projectControllerContract {
 use option::OptionTrait;
 use starknet::{ContractAddress,get_caller_address};
-use openzeppelin::access::accesscontrol::AccessControlComponent;
 use serde::Serde;
+/////////////////////////////////// OpenZeppelin inegration /////////////////////////////////
+use openzeppelin::access::accesscontrol::AccessControlComponent;
+   use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::token::erc721::ERC721Component;
+component!(path: SRC5Component, storage: src5, event: SRC5Event);
+    component!(path: ERC721Component, storage: erc721, event: ERC721Event);
 
+
+ #[abi(embed_v0)]
+    impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
+
+    // ERC721
+    #[abi(embed_v0)]
+    impl ERC721Impl = ERC721Component::ERC721Impl<ContractState>;
+    #[abi(embed_v0)]
+    impl ERC721MetadataImpl = ERC721Component::ERC721MetadataImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl ERC721CamelOnly = ERC721Component::ERC721CamelOnlyImpl<ContractState>;
+    #[abi(embed_v0)]
+    impl ERC721MetadataCamelOnly =
+        ERC721Component::ERC721MetadataCamelOnlyImpl<ContractState>;
+    impl ERC721InternalImpl = ERC721Component::InternalImpl<ContractState>;
+
+
+////////////////////////////////////////////////////////
     #[derive(Copy, Drop, starknet::Store,Serde)]
     enum SubmissionStatus {
             Proposed,
@@ -43,7 +66,7 @@ use serde::Serde;
         orgId: felt252,
         deadline: felt252,
         status: ProjectStatus,
-        winner_proposalId: felt252,
+        winner_proposalId: u256,
     }
     #[derive(Copy, Drop, starknet::Store,Serde)]
     struct Submission {
@@ -56,6 +79,10 @@ use serde::Serde;
     }
     #[storage]
     struct Storage {
+          #[substorage(v0)]
+        erc721: ERC721Component::Storage,
+        #[substorage(v0)]
+        src5: SRC5Component::Storage,
         projects :  LegacyMap::<u256, Project>,
         submissions :  LegacyMap::<u256, Submission>,
         submission_ids :  LegacyMap::<(u256,ContractAddress), u256>,
@@ -75,6 +102,10 @@ use serde::Serde;
 
             self.credential.write (credential);
             self.organization_controller.write (organization_controller);
+             self.erc721.initializer('Project Controller', 'PC');
+             // for testing only
+        self.erc721._mint(get_caller_address(), 1);
+        self.erc721._set_token_uri(1, 'ipfs/Qmkjdfkdfd');
         
     }
  #[external(v0)]
@@ -113,9 +144,9 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
 
         fn submit_work(ref self: ContractState,  project_id : u256,work_cid: felt252){
           /// TODO: add more checks 
-          assert(self.is_proiject_exist(project_id), 'project does not exist'');
+          assert(self.is_proiject_exist(project_id), 'project does not exist');
             // assert(self.get_project_status(project_id) == ProjectStatus::Open, 'project is not open');
-                     assert(project.deadline > block.timestamp, 'deadline has passed')
+            // assert(project.deadline > block.timestamp, 'deadline has passed')
 
             let submission = Submission{
                 id: self.submission_ids.read((project_id,get_caller_address())),
@@ -142,8 +173,8 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
             assert(self.is_submission_exist(submission_id), 'submission does not exist');
             let mut submission = self.submissions.read(submission_id);
             let mut project = self.projects.read(submission.project_id);
-            assert(project.status == ProjectStatus::Open, 'project is not open');
-            assert(project.winner_proposalId == 0, 'project already has a winner');
+            // assert(project.status == ProjectStatus::Open, 'project is not open');
+            // assert(project.winner_proposalId == 0, 'project already has a winner');
             // assert(project.orgId == get_caller_address(), 'caller is not the organization');
             project.status = ProjectStatus::Awarded;
             project.winner_proposalId = submission_id;
@@ -201,6 +232,10 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
        #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
+          #[flat]
+        ERC721Event: ERC721Component::Event,
+        #[flat]
+        SRC5Event: SRC5Component::Event,
         Register: Register,
         WorkSubmitted: WorkSubmitted,
         WorkAccepted: WorkAccepted,
