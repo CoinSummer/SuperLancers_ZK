@@ -112,6 +112,21 @@ impl IProjectControllerContractImpl of ProjectControllerContractTrait{
 
 
         fn submit_work(ref self: ContractState,  project_id : u256,work_cid: felt252){
+          /// TODO: add more checks 
+          assert(self.is_proiject_exist(project_id), 'project does not exist'');
+            // assert(self.get_project_status(project_id) == ProjectStatus::Open, 'project is not open');
+         
+            let submission = Submission{
+                id: self.submission_ids.read((project_id,get_caller_address())),
+                cid: work_cid,
+                submittor: get_caller_address(),
+                project_id: project_id,
+                status: SubmissionStatus::Proposed,
+                work_cid: work_cid,
+            };
+            self.submissions.write(self.submission_ids.read((project_id,get_caller_address())), submission);
+          
+          
             self.emit(
             WorkSubmitted{  project_cid : 2,
             work_id: 5,
