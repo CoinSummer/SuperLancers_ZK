@@ -1,13 +1,4 @@
-use starknet::{ContractAddress, get_caller_address};
-#[starknet::interface]
-trait IOrganizationControllerContract<TContractState> {
-     fn register_org(
-            ref self: TContractState, cid: felt252, name: felt252, admin: ContractAddress);
-        fn update_org(
-            ref self: TContractState, cid: felt252, name: felt252, admin: ContractAddress
-        );
- fn exists (self: @TContractState, id: u256) -> bool ;
- }
+
 #[starknet::contract]
 mod OrganizationControllerContract {
     use option::OptionTrait;
@@ -79,9 +70,13 @@ mod OrganizationControllerContract {
             self.emit(OrgUpdate { id: org_id, cid, name, admin, });
         }
 
-        fn exists (self: @ContractState, id: u256) -> bool {
-                let org = self.organizations.read(id);
+        fn exists(self: @ContractState, id: u256) -> bool {
+            let org = self.organizations.read(id);
             org.id != 0
+        }
+        fn org_admin(self: @ContractState, id: u256) -> ContractAddress {
+            let org = self.organizations.read(id);
+            org.admin
         }
     }
 

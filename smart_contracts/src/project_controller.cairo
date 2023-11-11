@@ -1,31 +1,51 @@
+
 #[starknet::interface]
 trait IProjectControllerContract<TContractState> {
     fn register_project(
         ref self: TContractState,
         project_cid: felt252,
         reward: felt252,
-        orgId: felt252,
+        orgId:u256,
         deadline: felt252
     );
     fn submit_work(ref self: TContractState, project_id: u256, work_cid: felt252);
     fn accept_work(ref self: TContractState, submission_id: u256);
     fn get_project_status(self: @TContractState, project_id: u256) -> felt252;
-    fn is_proiject_exist(self: @TContractState, project_id: u256) -> bool;
+    fn is_project_exist(self: @TContractState, project_id: u256) -> bool;
     fn is_submission_exist(self: @TContractState, project_id: u256) -> bool;
 //  fn get_project(self: @TContractState,  project_id: felt252) -> Project;
 //  fn get_submission(self: @TContractState,  submission_id: felt252) -> Submission;
 //   fn get_project_status(self: @TContractState, project_id: felt252) -> ProjectStatus;
 }
+use starknet::{ContractAddress, get_caller_address};
+#[starknet::interface]
+trait IOrganizationControllerContract<TContractState> {
+    fn register_org(ref self: TContractState, cid: felt252, name: felt252, admin: ContractAddress);
+    fn update_org(ref self: TContractState, cid: felt252, name: felt252, admin: ContractAddress);
+    fn exists(self: @TContractState, id: u256) -> bool;
+    fn org_admin(self: @TContractState, id: u256) -> ContractAddress ;
+}
 
+#[starknet::interface]
+trait ICredentialContract<TContractState> {
+    fn mint(ref self: TContractState, to: ContractAddress);
+}
 #[starknet::contract]
 mod ProjectControllerContract {
     use option::OptionTrait;
     use starknet::{ContractAddress, get_caller_address};
     use serde::Serde;
+        use starknet::get_block_timestamp;
+
+    use starknet::get_contract_address;
+    use integer::{u256_from_felt252,u64_from_felt252};
+    //// cross contract calls
+    use super::IOrganizationControllerContractDispatcher;
+    use super::IOrganizationControllerContractDispatcherTrait;
+    use super::ICredentialContractDispatcher;
+    use super::ICredentialContractDispatcherTrait;
     use openzeppelin::token::erc20::ERC20ABIDispatcherTrait;
     use openzeppelin::token::erc20::ERC20ABIDispatcher;
-    use starknet::get_contract_address;
-    use integer::u256_from_felt252;
 
     #[derive(Copy, Drop, starknet::Store, Serde)]
     enum SubmissionStatus {
@@ -47,7 +67,7 @@ mod ProjectControllerContract {
         id: u256,
         cid: felt252,
         reward: felt252,
-        orgId: felt252,
+        orgId:u256,
         deadline: felt252,
         status: ProjectStatus,
         winner_proposalId: u256,
@@ -94,17 +114,14 @@ mod ProjectControllerContract {
             ref self: ContractState,
             project_cid: felt252,
             reward: felt252,
-            orgId: felt252,
+            orgId:u256,
             deadline: felt252
         ) {
-            /// TODO: add checks 
-            // if (nonceUsed[nonce]) revert InvalidNonce();
-            // if (!organizationController.exists(orgId))
-            //     revert InvalidOrganizationId();
-            // if (organizationController.adminOf(orgId) != msg.sender)
-            //     revert Unauthorized();
-            // if (deadline <= block.timestamp) revert DeadlineAlreadyPassed();
- 
+            /// TODO: add more checks 
+             assert(IOrganizationControllerContractDispatcher { contract_address: self.organization_controller.read() }.exists(orgId), 'organization does not exist');
+              assert(IOrganizationControllerContractDispatcher { contract_address: self.organization_controller.read() }
+             .org_admin(orgId) == get_caller_address(), 'caller is not admin');
+             assert(u64_from_felt252(deadline) > get_block_timestamp(), 'deadline has passed');
             // // create project 
             let allowance = ERC20ABIDispatcher { contract_address: self.eth_address.read() }
                 .allowance(get_caller_address(), get_contract_address());
@@ -130,9 +147,9 @@ mod ProjectControllerContract {
 
         fn submit_work(ref self: ContractState, project_id: u256, work_cid: felt252) {
             /// TODO: add more checks 
-            assert(self.is_proiject_exist(project_id), 'project does not exist');
+            assert(self.is_project_exist(project_id), 'project does not exist');
             // assert(self.get_project_status(project_id) == ProjectStatus::Open, 'project is not open');
-            // assert(project.deadline > block.timestamp, 'deadline has passed')
+             assert(u64_from_felt252(self.projects.read(project_id).reward) > get_block_timestamp(), 'deadline has passed');
 
             let submission = Submission {
                 id: self.submission_ids.read((project_id, get_caller_address())),
@@ -180,7 +197,7 @@ mod ProjectControllerContract {
             let project = self.projects.read(project_id);
             project.status
         }
-        fn is_proiject_exist(self: @ContractState, project_id: u256) -> bool {
+        fn is_project_exist(self: @ContractState, project_id: u256) -> bool {
             let project = self.projects.read(project_id);
             project.id != 0
         }
@@ -213,7 +230,7 @@ mod ProjectControllerContract {
         project_cid: felt252,
         reward: felt252,
         by: ContractAddress,
-        orgId: felt252,
+        orgId:u256,
         deadline: felt252
     }
     #[derive(Drop, starknet::Event)]
