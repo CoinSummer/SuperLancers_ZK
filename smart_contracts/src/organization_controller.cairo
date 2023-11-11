@@ -48,10 +48,11 @@ mod OrganizationControllerContract {
         ) {
             assert(!self.pausable.is_paused(), 'Should not be paused');
             let mut id = self.total_orgs.read();
+            id += 1;
             let org = Organization { id, cid, name, admin, };
             self.organizations.write(id, org);
             self.admin_to_org_id.write(admin, id);
-            self.total_orgs.write(id + 1);
+            self.total_orgs.write(id);
             self.emit(Register { id, cid, name, admin, });
         }
 
@@ -66,6 +67,11 @@ mod OrganizationControllerContract {
             org.admin = admin;
             self.organizations.write(org_id, org);
             self.emit(OrgUpdate { id: org_id, cid, name, admin, });
+        }
+
+        fn exists (self: @ContractState, id: u256) -> bool {
+                let org = self.organizations.read(id);
+            org.id != 0
         }
     }
 

@@ -18,7 +18,7 @@ trait IProjectControllerContract<TContractState> {
 }
 
 #[starknet::contract]
-mod projectControllerContract {
+mod ProjectControllerContract {
     use option::OptionTrait;
     use starknet::{ContractAddress, get_caller_address};
     use serde::Serde;
