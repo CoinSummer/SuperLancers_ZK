@@ -58,7 +58,7 @@ We used the following technologies to build SuperLancers:
 
 ![Alt text](assets/image4.png)
 ![Alt text](assets/image-1.png)
-![Alt text](assets/image-2.png)
+![Alt text](image-2.png)
 -----------------
 SuperLancers is leading the way in reimagining the freelancing landscape by prioritizing privacy, accuracy, and user experience. Join us on this innovative journey as we revolutionize on-chain work environments and empower users with a trustless, private, and secure platform.
 
