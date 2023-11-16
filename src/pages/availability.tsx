@@ -131,10 +131,16 @@ const ProfilePage: React.FC = () => {
   };
 
   const init = () => {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    if (provider?.provider?.selectedAddress?.toLowerCase() !== defaultAddress?.toLowerCase()) {
-      return router.replace('/');
-    }
+    let provider = new ethers.providers.Web3Provider(window.ethereum);
+    // if (provider?.provider?.selectedAddress?.toLowerCase() !== defaultAddress?.toLowerCase()) {
+    //   return router.replace('/');
+    // }
+    setTimeout(() => {
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (provider?.provider?.selectedAddress?.toLowerCase() !== defaultAddress?.toLowerCase()) {
+        return router.replace('/');
+      }
+    }, 500)
 
     window.ethereum.on('accountsChanged', function () {
       if (provider?.provider?.selectedAddress?.toLowerCase() !== defaultAddress?.toLowerCase()) {
