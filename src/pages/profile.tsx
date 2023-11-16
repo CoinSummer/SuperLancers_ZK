@@ -28,9 +28,15 @@ const ProfilePage: React.FC = () => {
       setIsShowAvailablity(provider?.provider?.selectedAddress?.toLowerCase() === defaultAddress.toLowerCase());
     });
 
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    let provider = new ethers.providers.Web3Provider(window.ethereum);
     console.log(1, provider?.provider?.selectedAddress?.toLowerCase(), defaultAddress.toLowerCase());
     setIsShowAvailablity(provider?.provider?.selectedAddress?.toLowerCase() === defaultAddress.toLowerCase());
+
+    setTimeout(() => {
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      console.log(3, provider?.provider?.selectedAddress?.toLowerCase(), defaultAddress.toLowerCase());
+      setIsShowAvailablity(provider?.provider?.selectedAddress?.toLowerCase() === defaultAddress.toLowerCase());
+    }, 500)
   }, []);
 
   return (
@@ -52,7 +58,7 @@ const ProfilePage: React.FC = () => {
             strategies and building armies across the web and world.
           </p>
           <div className='flex justify-center gap-4 mt-4'>
-            {!isShowAvailablity ? <></> : <Button onClick={() => handleViewAvailablity()}>VIEW AVAILABILITY</Button>}
+            {!isShowAvailablity ? <></> : <Button onClick={() => handleViewAvailablity()}>ISSUE CREDENTIALS</Button>}
             <Button onClick={() => {}}>EDIT PROFILE</Button>
             <Button onClick={handleViewOrganisation}>VIEW ORGANISATION</Button>
           </div>
